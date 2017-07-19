@@ -1,0 +1,25 @@
+<?php
+use \Drupal\node\NodeInterface;
+use \Drupal\Core\Session\AccountInterface;
+use \Drupal\Core\Access\AccessResult;
+
+function iq_pb_cug_node_access($node, $op, $account)
+{
+    if ($op == 'view' && $node->bundle() == 'iqbm_page') {
+        $roleField = $node->field_iqcg_extranet;
+        if ($roleField->count() > 0) {
+            $iterator = $roleField->getIterator();
+            $roles = [];
+            while ($iterator->valid()) {
+                $roles[] = $iterator->current()->target_id;
+                $iterator->next();
+            }
+            if (count(array_intersect($roles, $account->getRoles())) > 0) {
+                return AccessResult::allowed()->cachePerPermissions();
+            } else {
+                return AccessResult::forbidden()->cachePerPermissions();
+            }
+        }
+    }
+    return AccessResult::neutral();
+}
