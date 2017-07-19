@@ -1,0 +1,24 @@
+# field.field.node.iqbm_page.field_iqcg_extranet.yml
+langcode: de
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_iqcg_extranet
+    - node.type.iqbm_page
+id: node.iqbm_page.field_iqcg_extranet
+field_name: field_iqcg_extranet
+entity_type: node
+bundle: iqbm_page
+label: Extranetgruppen
+description: 'Gruppen mit Zugriffsrecht auf die veröffentlichte Seite.'
+required: false
+translatable: false
+default_value: 
+  - target_uuid: 7bfead7b-aa9d-4324-8153-e8a2d17095af
+default_value_callback: ''
+settings:
+  handler: 'default:user_role'
+  handler_settings:
+    target_bundles: null
+    auto_create: false
+field_type: entity_reference
