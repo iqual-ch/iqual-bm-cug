@@ -1,8 +1,8 @@
 <?php
-use \Drupal\node\NodeInterface;
-use \Drupal\Core\Session\AccountInterface;
 use \Drupal\Core\Access\AccessResult;
 use \Drupal\Core\Form\FormStateInterface;
+use \Drupal\node\NodeInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 function iq_pb_cug_node_access($node, $op, $account)
 {
@@ -15,7 +15,8 @@ function iq_pb_cug_node_access($node, $op, $account)
                 $roles[] = $iterator->current()->target_id;
                 $iterator->next();
             }
-            if (count(array_intersect($roles, $account->getRoles())) > 0) {
+            $intersection = array_intersect($roles, $account->getRoles());
+            if (count($intersection) > 0) {
                 return AccessResult::allowed()->cachePerPermissions();
             } else {
                 return AccessResult::forbidden()->cachePerPermissions();
@@ -25,28 +26,50 @@ function iq_pb_cug_node_access($node, $op, $account)
     return AccessResult::neutral();
 }
 
-/**
- * Implements hook_form_alter().
- */
-function iq_pb_cug_form_alter(&$form, FormStateInterface $form_state, $form_id)
-{
-    switch ($form_id) {
-        // Alter login form and add own custom submit handler.
-        case 'user_login_form':
-            $form['#submit'][] = '_iq_pb_cug_user_login_form_submit';
-            break;
-    }
-}
+// /**
+//  * Implements hook_user_login_form_submit().
+//  */
+// function iq_pb_cug_form_user_login_form_alter(&$form, FormStateInterface $form_state, $form_id)
+// {
+//     // echo 'registering handler';
+//     $form['#submit'][] = '_iq_pb_cug_user_login_form_submit';
+//     $form_state->setRedirect('<front>');
+// }
 
-/**
- * Custom submit handler for login form.
- */
-function _iq_pb_cug_user_login_form_submit($form, FormStateInterface $form_state)
+// function _iq_pb_cug_user_login_form_submit(&$form, FormStateInterface $form_state)
+// {
+//     return;
+//     // Set redirect to login form.
+//     $user = \Drupal::currentUser();
+//     $isExtranet = false;
+//     foreach ($user->getRoles() as $role) {
+//         $roleObj = \Drupal\user\Entity\Role::load($role);
+//         if (strpos($roleObj->label(), 'Extranet') !== false) {
+//             $isExtranet = true;
+//         }
+//     }
+//     // die($isExtranet . '__');
+//     if ($isExtranet) {
+//         $url = \Drupal\node\Entity\Node::load(4046)->toUrl();
+
+//         // echo $form_state->isRedirectDisabled() . '__';
+//         $form_state->setRedirect('<front>');
+//     }
+
+// }
+
+function iq_pb_cug_user_login(\Drupal\user\UserInterface $user)
 {
-  // Set redirect to login form.
-    $user = \Drupal::currentUser();
-    if (in_array('Extranet', $user->roles)) {
-        $url = \Drupal\Core\Url::fromRoute('entity.node.canonical', ['node' => 4096]);
-        $form_state->setRedirect($url);
+    $isExtranet = false;
+    foreach ($user->getRoles() as $role) {
+        $roleObj = \Drupal\user\Entity\Role::load($role);
+        if (strpos($roleObj->label(), 'Extranet') !== false) {
+            $isExtranet = true;
+        }
+    }
+    if ($isExtranet) {
+        $response = new RedirectResponse(\Drupal\node\Entity\Node::load(4046)->toUrl()->toString());
+        $response->send();
+        exit();
     }
 }
