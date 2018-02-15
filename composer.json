@@ -2,7 +2,6 @@
     "name": "drupal/iqual-bm-cug",
     "description": "Allows to add access rights to public pages.",
     "type": "drupal-custom-module",
-    "license": "GPL-2.0+",
     "repositories": [
         {
            "type": "composer",
