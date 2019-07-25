@@ -1,9 +1,18 @@
 <?php
-use \Drupal\Core\Access\AccessResult;
-use \Drupal\Core\Form\FormStateInterface;
-use \Drupal\node\NodeInterface;
+use Drupal\Core\Url;
+use Drupal\user\UserInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use \Drupal\Core\Access\AccessResult;
+use \Drupal\node\NodeInterface;
 
+/**
+ * Undocumented function
+ *
+ * @param [type] $node
+ * @param [type] $op
+ * @param [type] $account
+ * @return void
+ */
 function iq_pb_cug_node_access($node, $op, $account)
 {
     if ($op == 'view' && $node->bundle() == 'iqbm_page') {
@@ -26,39 +35,13 @@ function iq_pb_cug_node_access($node, $op, $account)
     return AccessResult::neutral();
 }
 
-// /**
-//  * Implements hook_user_login_form_submit().
-//  */
-// function iq_pb_cug_form_user_login_form_alter(&$form, FormStateInterface $form_state, $form_id)
-// {
-//     // echo 'registering handler';
-//     $form['#submit'][] = '_iq_pb_cug_user_login_form_submit';
-//     $form_state->setRedirect('<front>');
-// }
-
-// function _iq_pb_cug_user_login_form_submit(&$form, FormStateInterface $form_state)
-// {
-//     return;
-//     // Set redirect to login form.
-//     $user = \Drupal::currentUser();
-//     $isExtranet = false;
-//     foreach ($user->getRoles() as $role) {
-//         $roleObj = \Drupal\user\Entity\Role::load($role);
-//         if (strpos($roleObj->label(), 'Extranet') !== false) {
-//             $isExtranet = true;
-//         }
-//     }
-//     // die($isExtranet . '__');
-//     if ($isExtranet) {
-//         $url = \Drupal\node\Entity\Node::load(4046)->toUrl();
-
-//         // echo $form_state->isRedirectDisabled() . '__';
-//         $form_state->setRedirect('<front>');
-//     }
-
-// }
-
-function iq_pb_cug_user_login(\Drupal\user\UserInterface $user)
+/**
+ * Undocumented function
+ *
+ * @param UserInterface $user
+ * @return void
+ */
+function iq_pb_cug_user_login(UserInterface $user)
 {
     $isExtranet = false;
     foreach ($user->getRoles() as $role) {
@@ -68,8 +51,21 @@ function iq_pb_cug_user_login(\Drupal\user\UserInterface $user)
         }
     }
     if ($isExtranet) {
-        $response = new RedirectResponse(\Drupal\node\Entity\Node::load(4046)->toUrl()->toString());
-        $response->send();
-        exit();
+        $current_route = \Drupal::routeMatch()->getRouteName();
+        if (!in_array($current_route, ['user.reset', 'user.reset.login'])) {
+            $username = $user->getRoles();
+            $cug_redirection = \Drupal::config('redirect_cug.settings')
+                ->get('cug_redirection');
+
+            if (!empty($cug_redirection[array_reverse($username)[0]])) {
+                $response = new RedirectResponse(Url::fromUserInput($cug_redirection[array_reverse($username)[0]])
+                        ->toString());
+            } else {
+                $default_redirection = \Drupal::config('redirect_cug.settings')
+                    ->get('default_redirection');
+                $response = new RedirectResponse(Url::fromUserInput($default_redirection)->toString());
+            }
+            $response->send();
+        }
     }
 }
