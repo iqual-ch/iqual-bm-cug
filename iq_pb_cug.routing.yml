@@ -1,0 +1,7 @@
+iq_pb_cug.admin_settings:
+  path: '/admin/config/system/cug_redirect'
+  defaults:
+    _form: '\Drupal\iq_pb_cug\Form\CugRedirectionForm'
+    _title: 'Set CUG Login Destination'
+  requirements:
+    _permission: 'administer iq_pb_cug settings'

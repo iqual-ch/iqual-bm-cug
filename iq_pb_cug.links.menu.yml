@@ -1,0 +1,6 @@
+iq_pb_cug.admin_settings:
+  title: 'Set CUG Login Destination'
+  description: 'Set the destination of user after cug login'
+  route_name: iq_pb_cug.admin_settings
+  parent: system.admin_config_system
+  weight: 10
