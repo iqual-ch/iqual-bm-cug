@@ -1,0 +1,11 @@
+iq_pb_cug.add_user:
+  route_name: iq_pb_cug.add_user
+  title: 'Add CUG user'
+  appears_on:
+    - iq_pb_cug.settings
+
+iq_pb_cug.add_role:
+  route_name: iq_pb_cug.add_role
+  title: 'Add CUG role'
+  appears_on:
+    - iq_pb_cug.settings

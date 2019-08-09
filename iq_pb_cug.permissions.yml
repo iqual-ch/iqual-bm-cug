@@ -1,0 +1,12 @@
+administer iq_pb_cug settings:
+  title: 'Administer CUG Settings'
+  description: 'Allow to access the administration configuration for the Closed User Group.'
+  restrict access: true
+
+administer iq_pb_cug roles:
+  title: 'Manage CUG Roles'
+  description: 'The role is allowed to create and edit the roles within the Closed User Group.'
+
+administer iq_pb_cug users:
+  title: 'Manage CUG Users'
+  description: 'The role is allowed to create and edit users within the Closed User Group.'
