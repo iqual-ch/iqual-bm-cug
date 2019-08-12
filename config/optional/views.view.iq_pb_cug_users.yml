@@ -899,7 +899,7 @@ display:
     display_title: Page
     position: 1
     display_options:
-      path: admin/config/system/cug/users
+      path: admin/config/people/cug/users
       show_admin_links: false
       menu:
         type: none
