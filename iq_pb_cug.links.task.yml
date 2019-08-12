@@ -7,3 +7,8 @@ iq_pb_cug.cug_login_settings:
   title: 'Set CUG Login Destination'
   route_name: iq_pb_cug.cug_login_settings
   base_route: iq_pb_cug.settings
+
+iq_pb_cug.cug_roles:
+  title: 'CUG Roles'
+  route_name: iq_pb_cug.cug_roles
+  base_route: iq_pb_cug.settings

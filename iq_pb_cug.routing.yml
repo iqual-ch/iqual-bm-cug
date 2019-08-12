@@ -1,5 +1,5 @@
 iq_pb_cug.cug_login_settings:
-  path: '/admin/config/system/cug_settings/cug_redirect'
+  path: '/admin/config/system/cug/cug_redirect'
   defaults:
     _form: '\Drupal\iq_pb_cug\Form\CugRedirectionForm'
     _title: 'Closed User Group'
@@ -9,7 +9,7 @@ iq_pb_cug.cug_login_settings:
     _admin_route: TRUE
 
 iq_pb_cug.settings:
-  path: '/admin/config/system/cug_settings'
+  path: '/admin/config/system/cug/users'
   defaults:
     _title: 'CUG Users'
   requirements:
@@ -17,21 +17,30 @@ iq_pb_cug.settings:
   options:
     _admin_route: TRUE
 
-
 iq_pb_cug.add_role:
-  path: '/admin/config/system/cug_settings/add/role'
+  path: '/admin/config/system/cug/add/role'
   defaults:
-    _controller: '\Drupal\iq_pb_cug\Controller\CUGController::rolePage'
+    _controller: '\Drupal\iq_pb_cug\Controller\CUGController::addRolePage'
   requirements:
     _permission: 'administer iq_pb_cug roles'
   options:
     _admin_route: TRUE
 
 iq_pb_cug.add_user:
-  path: '/admin/config/system/cug_settings/add/user'
+  path: '/admin/config/system/cug/add/user'
   defaults:
-    _controller: '\Drupal\iq_pb_cug\Controller\CUGController::userPage'
+    _controller: '\Drupal\iq_pb_cug\Controller\CUGController::addUserPage'
   requirements:
     _permission: 'administer iq_pb_cug users'
+  options:
+    _admin_route: TRUE
+
+iq_pb_cug.cug_roles:
+  path: '/admin/config/system/cug/roles'
+  defaults:
+    _controller: '\Drupal\iq_pb_cug\Controller\CUGController::rolePage'
+    _title: 'CUG Roles'
+  requirements:
+    _permission: 'administer iq_pb_cug roles'
   options:
     _admin_route: TRUE

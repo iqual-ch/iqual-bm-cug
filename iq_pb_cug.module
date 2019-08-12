@@ -87,9 +87,14 @@ function iq_pb_cug_form_user_role_form_alter(&$form, FormStateInterface $form_st
         '#type' => 'checkbox',
         '#title' => t('Closed user group role'),
         '#description' => t('Check this box if the role is part of the closed user group.'),
-        '#default_value' => $entity->getThirdPartySetting('iq_pb_cug', 'closed_user_group')
+        '#default_value' => $entity->getThirdPartySetting('iq_pb_cug', 'closed_user_group'),
+        '#disabled' => $entity->getThirdPartySetting('iq_pb_cug', 'closed_user_group') && !\Drupal::currentUser()->hasPermission('administer users') ? 'disabled' : false,
     ];
     $form['actions']['submit']['#submit'][] = 'iq_pb_cug_form_user_role_form_submit';
+}
+
+function iq_pb_cug_form_user_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+    $form['actions']['submit']['#submit'][] = 'iq_pb_cug_form_user_form_submit';
 }
 
 /**
@@ -99,8 +104,30 @@ function iq_pb_cug_form_user_role_form_submit(&$form, FormStateInterface $form_s
     $entity = $form_state->getFormObject()->getEntity();
     $entity->setThirdPartySetting('iq_pb_cug', 'closed_user_group', (bool) $form['closed_user_group']);
     $entity->save();
+    // If the role is a part of the CUG, redirect to the CUG roles.
+    if($form['closed_user_group']) {
+        $form_state->setRedirect('iq_pb_cug.cug_roles');
+    }
 }
 
+/**
+ * Form submit handler function for the user form.
+ */
+function iq_pb_cug_form_user_form_submit(&$form, FormStateInterface $form_state) {
+    /** @var \Drupal\user\Entity\User $entity */
+    $entity = $form_state->getFormObject()->getEntity();
+    $is_cug_user = false;
+    foreach ($entity->getRoles() as $role_key => $role_value) {
+        if(Role::load($role_value)->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
+            $is_cug_user = true;
+            break;
+        }
+    }
+    if($is_cug_user) {
+        $form_state->setRedirect('iq_pb_cug.settings');
+    }
+
+}
 /**
  * Implements hook_views_pre_view().
  *
@@ -109,16 +136,20 @@ function iq_pb_cug_form_user_role_form_submit(&$form, FormStateInterface $form_s
 function iq_pb_cug_views_pre_view(ViewExecutable $view, $display_id, array &$args)
 {
     if($view->id() == 'iq_pb_cug_users') {
+
+        // Filter only CUG Users
         $view_filters = $view->getDisplay()->getOption('filters');
         // @todo CUG Functionality
         // Get all CUG roles.
         $roles = \Drupal::entityQuery('user_role')->execute();
         foreach ($roles as $role_key => $role) {
             $user_role = Role::load($role_key);
+            if ($user_role->getThirdPartySetting('iq_pb_cug','closed_user_group')) {
+                $view_filters['roles_target_id']['value'][$role_key] = $role_key;
+            }
         }
-        // Get role filter and override value with the CUG roles.
-        //$view_filters[$key]['value'][$item] = $item;
-
+        $view_filters['roles_target_id']['exposed'] = false;
+        // Override filters to show only users with CUG roles.
         $view->getDisplay()->overrideOption('filters', $view_filters);
     }
 }

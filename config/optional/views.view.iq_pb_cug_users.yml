@@ -21,7 +21,7 @@ display:
       access:
         type: perm
         options:
-          perm: 'administer users'
+          perm: 'administer iq_pb_cug users'
       cache:
         type: tag
       query:
@@ -899,15 +899,17 @@ display:
     display_title: Page
     position: 1
     display_options:
-      path: admin/config/system/cug_settings
+      path: admin/config/system/cug/users
       show_admin_links: false
       menu:
-        type: 'default tab'
+        type: none
         title: Liste
         description: 'Find and manage people interacting with your site.'
-        menu_name: admin
+        expanded: false
+        parent: ''
         weight: -10
-        context: ''
+        context: '0'
+        menu_name: admin
       tab_options:
         type: normal
         title: People

@@ -11,3 +11,10 @@ iq_pb_cug.cug_login_settings:
   route_name: iq_pb_cug.cug_login_settings
   parent: iq_pb_cug.settings
   weight: 10
+
+iq_pb_cug.cug_roles:
+  title: 'Closed User Group Roles'
+  description: 'CUG Roles'
+  route_name: iq_pb_cug.cug_roles
+  parent: iq_pb_cug.settings
+  weight: 11
