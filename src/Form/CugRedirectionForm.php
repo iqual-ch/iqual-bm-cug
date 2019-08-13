@@ -4,6 +4,9 @@ namespace Drupal\iq_pb_cug\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\user\Entity\Role;
+use Drupal\user\Entity\User;
+use Drupal\user\RoleInterface;
 
 /**
  * Class CugRedirectionForm.
@@ -44,19 +47,24 @@ class CugRedirectionForm extends ConfigFormBase
             '#type' => 'fieldset',
             '#title' => t('All roles'),
         ];
-        foreach (user_role_names() as $user => $name) {
-            if ($user != "anonymous") {
-                // if (strpos($user, 'Extranet') !== false) {
-                $form['roles'][$user] = [
-                    '#type' => 'textfield',
-                    '#title' => $name,
-                    '#size' => 60,
-                    '#maxlength' => 128,
-                    '#description' => $this->t('Add a valid url or &ltfront> for main page'),
-                    '#required' => false,
-                    '#default_value' => isset($savedPathRoles[$user]) ? $savedPathRoles[$user] : '',
-                ];
-                // }
+        /** @var  $role \Drupal\user\Entity\Role */
+        foreach (Role::loadMultiple() as $role) {
+            if ($role->id() != "anonymous") {
+                $is_cug_user = false;
+                if($role->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
+                    $is_cug_user = true;
+                }
+                if ($is_cug_user) {
+                    $form['roles'][$role->id()] = [
+                        '#type' => 'textfield',
+                        '#title' => $role->label(),
+                        '#size' => 60,
+                        '#maxlength' => 128,
+                        '#description' => $this->t('Add a valid url or &ltfront> for main page'),
+                        '#required' => false,
+                        '#default_value' => isset($savedPathRoles[$role->id()]) ? $savedPathRoles[$role->id()] : '',
+                    ];
+                }
             }
         }
 
