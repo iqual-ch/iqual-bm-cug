@@ -1,9 +1,5 @@
 name: iQual CUG
 description: Allows to add access rights to public pages.
 package: Custom
-
 type: module
 core: 8.x
-
-dependencies: 
-  - iq_block_module
