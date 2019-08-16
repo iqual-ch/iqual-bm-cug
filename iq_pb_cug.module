@@ -2,6 +2,7 @@
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
+use Drupal\user\Entity\User;
 use Drupal\user\UserInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use \Drupal\Core\Access\AccessResult;
@@ -94,6 +95,15 @@ function iq_pb_cug_form_user_role_form_alter(&$form, FormStateInterface $form_st
 }
 
 function iq_pb_cug_form_user_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+    /** @var User $user */
+    if (isset ($_GET['destination']) && strpos($_GET['destination'],'/cug/') > 0) {
+        foreach ($form['account']['roles']['#options'] as $role_key => $role_label) {
+            if (!Role::load($role_key)->getThirdPartySetting('iq_pb_cug','closed_user_group')) {
+                unset($form['account']['roles']['#options'][$role_key]);
+                unset($form['account']['roles'][$role_key]);
+            }
+        }
+    }
     $form['actions']['submit']['#submit'][] = 'iq_pb_cug_form_user_form_submit';
 }
 
@@ -142,11 +152,16 @@ function iq_pb_cug_views_pre_view(ViewExecutable $view, $display_id, array &$arg
         // @todo CUG Functionality
         // Get all CUG roles.
         $roles = \Drupal::entityQuery('user_role')->execute();
+        $cug_roles = 0;
         foreach ($roles as $role_key => $role) {
             $user_role = Role::load($role_key);
             if ($user_role->getThirdPartySetting('iq_pb_cug','closed_user_group')) {
                 $view_filters['roles_target_id']['value'][$role_key] = $role_key;
+                $cug_roles++;
             }
+        }
+        if ($cug_roles<=0) {
+            $view_filters['roles_target_id']['value']['no-cug-roles'] = 'no-cug-roles';
         }
         $view_filters['roles_target_id']['exposed'] = false;
         // Override filters to show only users with CUG roles.

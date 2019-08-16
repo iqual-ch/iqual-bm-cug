@@ -7,7 +7,6 @@ use Drupal\Core\Form\FormState;
 use Drupal\iq_pb_cug\CUGRoleListBuilder;
 use Drupal\user\Entity\Role;
 use Drupal\user\Entity\User;
-use Drupal\iq_pb_cug\CUGRegisterForm;
 
 /**
  * Controller routines for user routes.
@@ -54,7 +53,6 @@ class CUGController extends ControllerBase {
      *    The form render array for adding a new user.
      */
     public function addUserPage() {
-        $x = CUGRegisterForm::create(\Drupal::getContainer());
         $user = User::create();
         $form = \Drupal::service('entity.form_builder')->getForm($user);
         foreach ($form['account']['roles']['#options'] as $role_key => $role_label) {
