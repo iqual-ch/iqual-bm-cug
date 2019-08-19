@@ -19,7 +19,11 @@ class CUGRoleListBuilder extends RoleListBuilder
     {
         // Check if the role is part of the Closed User Group.
         if($entity->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
-            return parent::buildRow($entity);
+            $row = parent::buildRow($entity);
+            $row['#weight'] = $entity->get($this->weightKey);
+            // Add weight column.
+            $row['weight']['#markup'] = $entity->getThirdPartySetting('iq_pb_cug', 'closed_user_group_weight');
+            return $row;
         }
         else return null;
     }
