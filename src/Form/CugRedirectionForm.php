@@ -38,8 +38,7 @@ class CugRedirectionForm extends ConfigFormBase
             '#title' => 'Default redirection',
             '#size' => 60,
             '#maxlength' => 128,
-            '#description' => $this->t('Add a valid url or &ltfront> for main page'),
-            '#required' => true,
+            '#description' => $this->t('Add a valid url for the default page'),
             '#default_value' => isset($default_redirection) ? $default_redirection : '',
         ];
 
@@ -60,8 +59,7 @@ class CugRedirectionForm extends ConfigFormBase
                         '#title' => $role->label(),
                         '#size' => 60,
                         '#maxlength' => 128,
-                        '#description' => $this->t('Add a valid url or &ltfront> for main page'),
-                        '#required' => false,
+                        '#description' => $this->t('Add a valid url for the user role %s', ['%s' => $role->label()]),
                         '#default_value' => isset($savedPathRoles[$role->id()]) ? $savedPathRoles[$role->id()] : '',
                     ];
                 }
