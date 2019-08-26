@@ -36,6 +36,10 @@ function iq_pb_cug_node_access($node, $op, $account)
             if (count($intersection) > 0) {
                 return AccessResult::allowed()->cachePerPermissions();
             } else {
+                if ($account->getRoles()[0] == 'anonymous') {
+                    $response = new RedirectResponse(Url::fromUserInput("/de/user/login?destination=" . $_SERVER['REQUEST_URI'])->toString());
+                    $response->send();
+                }
                 return AccessResult::forbidden()->cachePerPermissions();
             }
         }
