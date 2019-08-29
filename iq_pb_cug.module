@@ -1,11 +1,7 @@
 <?php
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Language\LanguageInterface;
-use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
-use Drupal\Core\Entity\EntityTypeInterface;
-use Drupal\Core\Field\BaseFieldDefinition;
 use Drupal\user\Entity\User;
 use Drupal\user\UserInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -14,30 +10,40 @@ use \Drupal\views\ViewExecutable;
 use \Drupal\user\Entity\Role;
 
 /**
- * Undocumented function
+ * Implements hook_node_access().
  *
- * @param [type] $node
- * @param [type] $op
- * @param [type] $account
- * @return void
+ *
+ * Check if there is a role access defined for the node, if so redirect accordingly.
  */
 function iq_pb_cug_node_access($node, $op, $account)
 {
-    if ($op == 'view' && isset($node->field_role_access)) {
+    $urlWithoutParams = explode('?', $_SERVER['REQUEST_URI'])[0];
+    $login_destination = \Drupal::config('redirect_cug.settings')
+        ->get('login_destination');
+    if(empty($login_destination) || $urlWithoutParams == $login_destination) {
+        return AccessResult::neutral();
+    }
+    if ($op == 'view' && $node->hasField('field_role_access') && !$node->field_role_access->isEmpty()) {
        $roleField = $node->field_role_access;
-        if ($roleField->getValue()) {
+        if (count($roleField->getValue()) > 0) {
             $iterator = $roleField->getValue();
             $roles = [];
 
+            $isExtranet = false;
+            if (count($iterator) > 0)
             foreach ($iterator as $role => $value) {
                 $roles[] = $value['target_id'];
+                if (Role::load($value['target_id'])->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
+                    $isExtranet = true;
+                }
             }
             $intersection = array_intersect($roles, $account->getRoles());
             if (count($intersection) > 0) {
                 return AccessResult::allowed()->cachePerPermissions();
             } else {
-                if ($account->getRoles()[0] == 'anonymous') {
-                    $response = new RedirectResponse(Url::fromUserInput("/de/user/login?destination=" . $_SERVER['REQUEST_URI'])->toString());
+                $entity = \Drupal::routeMatch()->getParameter('node');
+                if ($account->getRoles()[0] == 'anonymous' && $isExtranet && $node->id() == $entity->id()) {
+                    $response = new RedirectResponse(Url::fromUserInput($login_destination . "?destination=" . $_SERVER['REQUEST_URI'])->toString());
                     $response->send();
                 }
                 return AccessResult::forbidden()->cachePerPermissions();
@@ -73,23 +79,28 @@ function iq_pb_cug_user_login(UserInterface $user)
     if ($isExtranet) {
         $current_route = \Drupal::routeMatch()->getRouteName();
         if (!in_array($current_route, ['user.reset', 'user.reset.login'])) {
+            $destination = \Drupal::request()->query->get('destination');
+            if (!empty($destination)) {
+                $response = new RedirectResponse(Url::fromUserInput($destination)->toString());
+                $response->send();
+                return;
+            }
+
+
             $cug_redirection = \Drupal::config('redirect_cug.settings')
                 ->get('cug_redirection');
             $default_redirection = \Drupal::config('redirect_cug.settings')
                 ->get('default_redirection');
+            $login_destination = \Drupal::config('redirect_cug.settings')
+                ->get('login_destination');
 
-            if (!empty($cug_redirection[$username])) {
-                $response = new RedirectResponse(Url::fromUserInput($cug_redirection[$username])
+            if (!empty($login_destination)) {
+                if (!empty($cug_redirection[$username])) {
+                    $response = new RedirectResponse(Url::fromUserInput($cug_redirection[$username])
                         ->toString());
-                $response->send();
-            } else if (!empty($default_redirection)){
-                $response = new RedirectResponse(Url::fromUserInput($default_redirection)->toString());
-                $response->send();
-            }
-            else {
-                $destination = \Drupal::request()->query->get('destination');
-                if(!empty($destination)) {
-                    $response = new RedirectResponse(Url::fromUserInput($destination)->toString());
+                    $response->send();
+                } else if (!empty($default_redirection)) {
+                    $response = new RedirectResponse(Url::fromUserInput($default_redirection)->toString());
                     $response->send();
                 }
             }

@@ -32,6 +32,7 @@ class CugRedirectionForm extends ConfigFormBase
         $config = $this->config('redirect_cug.settings');
         $default_redirection = $config->get('default_redirection');
         $savedPathRoles = $config->get('cug_redirection');
+        $login_destination = $config->get('login_destination');
 
         $form['default_redirection'] = [
             '#type' => 'textfield',
@@ -40,6 +41,14 @@ class CugRedirectionForm extends ConfigFormBase
             '#maxlength' => 128,
             '#description' => $this->t('Add a valid url for the default page'),
             '#default_value' => isset($default_redirection) ? $default_redirection : '',
+        ];
+        $form['login_destination'] = [
+            '#type' => 'textfield',
+            '#title' => 'Login page',
+            '#size' => 60,
+            '#maxlength' => 128,
+            '#description' => $this->t('Add a valid url for the login page'),
+            '#default_value' => isset($login_destination) ? $login_destination : '/de/login',
         ];
 
         $form['roles'] = [
@@ -126,6 +135,7 @@ class CugRedirectionForm extends ConfigFormBase
         $this->config('redirect_cug.settings')
             ->set('cug_redirection', $loginUrls)
             ->set('default_redirection', $form_state->getValue('default_redirection'))
+            ->set('login_destination', $form_state->getValue('login_destination'))
         // ->set('exclude_urls', $form_state->getValue('exclude_urls'))
             ->save();
 

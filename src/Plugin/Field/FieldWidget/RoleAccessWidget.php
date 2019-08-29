@@ -5,6 +5,7 @@ namespace Drupal\iq_pb_cug\Plugin\Field\FieldWidget;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Field\Plugin\Field\FieldWidget\OptionsSelectWidget;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\node\Entity\Node;
 use Drupal\user\Entity\Role;
 use Drupal\Core\Field\FieldItemListInterface;
 
@@ -25,6 +26,7 @@ class RoleAccessWidget extends OptionsSelectWidget
 {
     public function formElement(FieldItemListInterface $items, $delta, array $element, array &$form, FormStateInterface $form_state)
     {
+
         $content_access['content_access'] = [
             '#type' => 'details',
             '#title' => t('Content access'),
