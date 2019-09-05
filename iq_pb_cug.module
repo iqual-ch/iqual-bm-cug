@@ -42,7 +42,7 @@ function iq_pb_cug_node_access($node, $op, $account)
                 return AccessResult::allowed()->cachePerPermissions();
             } else {
                 $entity = \Drupal::routeMatch()->getParameter('node');
-                if ($account->getRoles()[0] == 'anonymous' && $isExtranet && $node->id() == $entity->id()) {
+                if ($account->getRoles()[0] == 'anonymous' && $isExtranet && isset($entity) && $node->id() == $entity->id()) {
                     $response = new RedirectResponse(Url::fromUserInput($login_destination . "?destination=" . $_SERVER['REQUEST_URI'])->toString());
                     $response->send();
                 }
