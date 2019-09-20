@@ -44,9 +44,8 @@ function iq_pb_cug_node_access($node, $op, $account)
                 return AccessResult::allowed()->cachePerPermissions();
             } else {
                 $entity = \Drupal::routeMatch()->getParameter('node');
-                if ($entity != null && $account->getRoles()[0] == 'anonymous' && $isExtranet && $node->id() == $entity->id()) {
-                    $login_destination = \Drupal::config('redirect_cug.settings')
-                        ->get('login_destination');
+                if ($entity != null && $account->getRoles()[0] == 'anonymous' && $isExtranet && isset($entity) && $node->id() == $entity->id()) {
+                    $login_destination = \Drupal::config('redirect_cug.settings')->get('login_destination');
                     $response = new RedirectResponse(Url::fromUserInput($login_destination . "?destination=" . $_SERVER['REQUEST_URI'])->toString());
                     $response->send();
                 }
@@ -171,7 +170,8 @@ function iq_pb_cug_form_user_role_form_submit(&$form, FormStateInterface $form_s
     $entity->setThirdPartySetting('iq_pb_cug', 'closed_user_group_weight', $form['cug_settings']['closed_user_group_weight']['#value']);
     $entity->save();
     // If the role is a part of the CUG, redirect to the CUG roles.
-    if ((bool) $form['cug_settings']['closed_user_group']['#value']) {
+    $user = \Drupal::currentUser();
+    if ((bool) $form['cug_settings']['closed_user_group']['#value'] && $user->hasPermission('administer iq_pb_cug users') && $user->hasPermission('administer users')) {
         $form_state->setRedirect('iq_pb_cug.cug_roles');
     }
 }
@@ -190,8 +190,13 @@ function iq_pb_cug_form_user_form_submit(&$form, FormStateInterface $form_state)
             break;
         }
     }
-    if ($is_cug_user) {
+    $user = \Drupal::currentUser();
+    if ($is_cug_user && $user->hasPermission('administer iq_pb_cug users') && $user->hasPermission('administer users')) {
         $form_state->setRedirect('iq_pb_cug.settings');
+    } else {
+        if ($is_cug_user) {
+            $form_state->setRedirect('user.page');
+        }
     }
 
 }

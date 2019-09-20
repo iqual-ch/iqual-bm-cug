@@ -839,7 +839,7 @@ display:
           plugin_id: date
           entity_type: user
           entity_field: created
-      title: People
+      title: CUG Users
       empty:
         area_text_custom:
           id: area_text_custom
@@ -912,7 +912,7 @@ display:
         menu_name: admin
       tab_options:
         type: normal
-        title: People
+        title: CUG Users
         description: 'Manage user accounts, roles, and permissions.'
         menu_name: admin
         weight: 0
