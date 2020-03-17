@@ -1,5 +1,6 @@
 {
   "name": "iqual/iq_pb_cug",
+  "version": "1.0.0",
   "description": "Allows to add access rights to public pages.",
   "type": "drupal-custom-module",
   "repositories": [
