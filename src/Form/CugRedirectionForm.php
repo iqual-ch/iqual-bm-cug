@@ -29,7 +29,7 @@ class CugRedirectionForm extends ConfigFormBase
      */
     public function buildForm(array $form, FormStateInterface $form_state)
     {
-        $config = $this->config('redirect_cug.settings');
+        $config = $this->config('iq_pb_cug.settings');
         $default_redirection = $config->get('default_redirection');
         $savedPathRoles = $config->get('cug_redirection');
         $login_destination = $config->get('login_destination');
@@ -132,7 +132,7 @@ class CugRedirectionForm extends ConfigFormBase
                 $form_state->getValue($user);
             }
         }
-        $this->config('redirect_cug.settings')
+        $this->config('iq_pb_cug.settings')
             ->set('cug_redirection', $loginUrls)
             ->set('default_redirection', $form_state->getValue('default_redirection'))
             ->set('login_destination', $form_state->getValue('login_destination'))
@@ -149,7 +149,7 @@ class CugRedirectionForm extends ConfigFormBase
      */
     protected function getEditableConfigNames()
     {
-        return ['redirect_cug.settings'];
+        return ['iq_pb_cug.settings'];
     }
 
 }

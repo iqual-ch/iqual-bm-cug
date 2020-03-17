@@ -18,7 +18,7 @@ use \Drupal\views\ViewExecutable;
 function iq_pb_cug_node_access($node, $op, $account)
 {
     // $urlWithoutParams = explode('?', $_SERVER['REQUEST_URI'])[0];
-    // $login_destination = \Drupal::config('redirect_cug.settings')
+    // $login_destination = \Drupal::config('iq_pb_cug.settings')
     //     ->get('login_destination');
     // if(empty($login_destination) || $urlWithoutParams == $login_destination) {
     //     return AccessResult::neutral();
@@ -45,7 +45,7 @@ function iq_pb_cug_node_access($node, $op, $account)
             } else {
                 $entity = \Drupal::routeMatch()->getParameter('node');
                 if ($entity != null && $account->getRoles()[0] == 'anonymous' && $isExtranet && isset($entity) && $node->id() == $entity->id()) {
-                    $login_destination = \Drupal::config('redirect_cug.settings')->get('login_destination');
+                    $login_destination = \Drupal::config('iq_pb_cug.settings')->get('login_destination');
                     $response = new RedirectResponse(Url::fromUserInput($login_destination . "?destination=" . $_SERVER['REQUEST_URI'])->toString());
                     $response->send();
                 }
@@ -89,11 +89,11 @@ function iq_pb_cug_user_login(UserInterface $user)
                 return;
             }
 
-            $cug_redirection = \Drupal::config('redirect_cug.settings')
+            $cug_redirection = \Drupal::config('iq_pb_cug.settings')
                 ->get('cug_redirection');
-            $default_redirection = \Drupal::config('redirect_cug.settings')
+            $default_redirection = \Drupal::config('iq_pb_cug.settings')
                 ->get('default_redirection');
-            $login_destination = \Drupal::config('redirect_cug.settings')
+            $login_destination = \Drupal::config('iq_pb_cug.settings')
                 ->get('login_destination');
 
             if (!empty($login_destination)) {
