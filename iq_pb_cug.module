@@ -17,42 +17,42 @@ use \Drupal\views\ViewExecutable;
  */
 function iq_pb_cug_node_access($node, $op, $account)
 {
-  if (!empty($node) && $op == 'view' && $node->hasField('field_role_access') && !$node->field_role_access->isEmpty()) {
-    $roleField = $node->field_role_access;
-    if (!$roleField->isEmpty()) {
-      $iterator = $roleField->getValue();
-      $roles = [];
+    if (!empty($node) && $op == 'view' && $node->hasField('field_role_access') && !$node->field_role_access->isEmpty()) {
+      $roleField = $node->field_role_access;
+      if (!$roleField->isEmpty()) {
+        $iterator = $roleField->getValue();
+        $roles = [];
 
-      $isExtranet = FALSE;
-      if (count($iterator) > 0) {
-        foreach ($iterator as $role => $value) {
-          $roles[] = $value['target_id'];
-          if (Role::load($value['target_id'])
-            ->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
-            $isExtranet = TRUE;
+        $isExtranet = FALSE;
+        if (count($iterator) > 0) {
+          foreach ($iterator as $role => $value) {
+            $roles[] = $value['target_id'];
+            if (Role::load($value['target_id'])
+              ->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
+              $isExtranet = TRUE;
+            }
+          }
+        }
+        $intersection = array_intersect($roles, $account->getRoles());
+        if (count($intersection) > 0) {
+          return AccessResult::allowed()->cachePerPermissions();
+        }
+        else {
+          if ($account->isAnonymous() && $isExtranet) {
+            $login_destination = \Drupal::config('iq_pb_cug.settings')
+              ->get('login_destination');
+
+            $response = new RedirectResponse(Url::fromUserInput($login_destination . "?destination=" . $_SERVER['REQUEST_URI'])
+              ->toString());
+            $response->send();
+          }
+          else {
+            return AccessResult::forbidden()->cachePerPermissions();
           }
         }
       }
-      $intersection = array_intersect($roles, $account->getRoles());
-      if (count($intersection) > 0) {
-        return AccessResult::allowed()->cachePerPermissions();
-      }
-      else {
-        if ($account->isAnonymous() && $isExtranet) {
-          $login_destination = \Drupal::config('iq_pb_cug.settings')
-            ->get('login_destination');
-
-          $response = new RedirectResponse(Url::fromUserInput($login_destination . "?destination=" . $_SERVER['REQUEST_URI'])
-            ->toString());
-          $response->send();
-        }
-        else {
-          return AccessResult::forbidden()->cachePerPermissions();
-        }
-      }
     }
-  }
-  return AccessResult::neutral();
+    return AccessResult::neutral();
 }
 
 /**
