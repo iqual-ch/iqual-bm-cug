@@ -44,10 +44,10 @@ function iq_pb_cug_node_access($node, $op, $account)
 
             $response = new RedirectResponse(Url::fromUserInput($login_destination . "?destination=" . $_SERVER['REQUEST_URI'])
               ->toString());
-            $options = ['max_age' => 10];
-            $response->setCache($options);
             $response->send();
-            return AccessResult::forbidden()->resetCacheContexts();
+            // Reset the access, so it re-evaluates each time, instead of caching the result.
+            node_access_rebuild();
+            return AccessResult::forbidden()->setCacheMaxAge(0);
           }
           else {
             return AccessResult::forbidden()->cachePerPermissions();
