@@ -1,7 +1,7 @@
 {
-  "name": "drupal/iq_pb_cug",
+  "name": "iqual/iq_pb_cug",
   "description": "Allows to add access rights to public pages.",
-  "type": "drupal-module",
+  "type": "drupal-custom-module",
   "repositories": [
       {
          "type": "composer",
