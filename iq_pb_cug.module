@@ -60,6 +60,7 @@ function iq_pb_cug_node_access($node, $op, $account)
  */
 function iq_pb_cug_user_login(UserInterface $user)
 {
+    $middleware = \Drupal::service('http_middleware.iq_pb_cug');
     $isExtranet = false;
     $weight = -1;
     $username = null;
@@ -79,7 +80,7 @@ function iq_pb_cug_user_login(UserInterface $user)
             $destination = \Drupal::request()->query->get('destination');
             if (!empty($destination)) {
                 $response = new RedirectResponse(Url::fromUserInput($destination)->toString());
-                $response->send();
+                $middleware->setRedirectResponse($response);
                 return;
             }
 
@@ -94,10 +95,10 @@ function iq_pb_cug_user_login(UserInterface $user)
                 if (!empty($cug_redirection[$username])) {
                     $response = new RedirectResponse(Url::fromUserInput($cug_redirection[$username])
                             ->toString());
-                    $response->send();
+                    $middleware->setRedirectResponse($response);
                 } else if (!empty($default_redirection)) {
                     $response = new RedirectResponse(Url::fromUserInput($default_redirection)->toString());
-                    $response->send();
+                    $middleware->setRedirectResponse($response);
                 }
             }
         }
