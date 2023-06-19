@@ -2,6 +2,7 @@
 
 /**
  * @file
+ * Iq_pb_cug module file.
  */
 
 use Drupal\Core\Form\FormStateInterface;
@@ -15,7 +16,7 @@ use Drupal\views\ViewExecutable;
 /**
  * Implements hook_node_access().
  *
- * Check if there is a role access defined for the node, if so redirect accordingly.
+ * Redirect if access role for node is defined.
  */
 function iq_pb_cug_node_access($node, $op, $account) {
   if (!empty($node) && $op == 'view' && $node->hasField('field_role_access') && !$node->field_role_access->isEmpty()) {
@@ -26,7 +27,7 @@ function iq_pb_cug_node_access($node, $op, $account) {
 
       $isExtranet = FALSE;
       if ((is_countable($iterator) ? count($iterator) : 0) > 0) {
-        foreach ($iterator as $role => $value) {
+        foreach ($iterator as $value) {
           $roles[] = $value['target_id'];
           if (Role::load($value['target_id'])
             ->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
@@ -55,10 +56,6 @@ function iq_pb_cug_node_access($node, $op, $account) {
  * Implements hook_user_login().
  *
  * Check if the user is a part of the CUG and redirect accordingly.
- *
- * @param \Drupal\user\Entity\UserInterface $user
- *
- * @return void
  */
 function iq_pb_cug_user_login(UserInterface $user) {
   $middleware = \Drupal::service('http_middleware.iq_pb_cug');
@@ -126,7 +123,8 @@ function iq_pb_cug_form_user_role_form_alter(&$form, FormStateInterface $form_st
     '#title' => t('Closed user group role'),
     '#description' => t('Check this box if the role is part of the closed user group.'),
     '#default_value' => $entity->getThirdPartySetting('iq_pb_cug', 'closed_user_group'),
-    '#disabled' => $entity->getThirdPartySetting('iq_pb_cug', 'closed_user_group') && !\Drupal::currentUser()->hasPermission('administer users') ? 'disabled' : FALSE,
+    '#disabled' => $entity->getThirdPartySetting('iq_pb_cug', 'closed_user_group')
+    && !\Drupal::currentUser()->hasPermission('administer users') ? 'disabled' : FALSE,
   ];
 
   $form['cug_settings']['closed_user_group_weight'] = [
@@ -143,8 +141,8 @@ function iq_pb_cug_form_user_role_form_alter(&$form, FormStateInterface $form_st
  * Implements hook_form_FORM_ID_alter().
  */
 function iq_pb_cug_form_user_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  /** @var \Drupal\user\Entity\User $user */
-  if (isset($_GET['destination']) && strpos($_GET['destination'], '/cug/') > 0) {
+  $destination = \Drupal::request()->get('destination');
+  if (!empty($destination) && strpos($destination, '/cug/') > 0) {
     foreach ($form['account']['roles']['#options'] as $role_key => $role_label) {
       if (!Role::load($role_key)->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
         unset($form['account']['roles']['#options'][$role_key]);
@@ -165,7 +163,11 @@ function iq_pb_cug_form_user_role_form_submit(&$form, FormStateInterface $form_s
   $entity->save();
   // If the role is a part of the CUG, redirect to the CUG roles.
   $user = \Drupal::currentUser();
-  if ((bool) $form['cug_settings']['closed_user_group']['#value'] && $user->hasPermission('administer iq_pb_cug users') && $user->hasPermission('administer users')) {
+  if (
+    (bool) $form['cug_settings']['closed_user_group']['#value']
+    && $user->hasPermission('administer iq_pb_cug users')
+    && $user->hasPermission('administer users')
+  ) {
     $form_state->setRedirect('iq_pb_cug.cug_roles');
   }
 }
@@ -177,8 +179,8 @@ function iq_pb_cug_form_user_form_submit(&$form, FormStateInterface $form_state)
   /** @var \Drupal\user\Entity\User $entity */
   $entity = $form_state->getFormObject()->getEntity();
   $is_cug_user = FALSE;
-  foreach ($entity->getRoles() as $role_key => $role_value) {
-    if (Role::load($role_value)->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
+  foreach ($entity->getRoles() as $role_id) {
+    if (Role::load($role_id)->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
       $is_cug_user = TRUE;
       break;
     }

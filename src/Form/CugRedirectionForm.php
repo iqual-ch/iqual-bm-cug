@@ -7,7 +7,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\user\Entity\Role;
 
 /**
- * Class CugRedirectionForm.
+ * Form to set redirections.
  *
  * @package Drupal\iq_pb_cug\Form
  */
@@ -48,7 +48,7 @@ class CugRedirectionForm extends ConfigFormBase {
 
     $form['roles'] = [
       '#type' => 'fieldset',
-      '#title' => t('All roles'),
+      '#title' => $this->t('All roles'),
     ];
     /** @var  \Drupal\user\Entity\Role $role */
     foreach (Role::loadMultiple() as $role) {
@@ -70,12 +70,6 @@ class CugRedirectionForm extends ConfigFormBase {
       }
     }
 
-    // $form['exclude_urls'] = [
-    //     '#type' => 'textarea',
-    //     '#title' => $this->t('Exclude url from redirection'),
-    //     '#description' => $this->t('One url per line. Redirection on this urls will be skipped. You can use wildcard "*".'),
-    //     '#default_value' => $config->get('exclude_urls'),
-    // ];
     $form['actions']['#type'] = 'actions';
     $form['actions']['submit'] = [
       '#type' => 'submit',
@@ -98,14 +92,14 @@ class CugRedirectionForm extends ConfigFormBase {
       $path = $form_state->getValue($user);
       if (!empty($path)) {
         if (!(preg_match('/^[#?\/]+/', $path) || $path == '<front>')) {
-          $form_state->setErrorByName($user, t('This URL %url is not valid for role %role.', [
+          $form_state->setErrorByName($user, $this->t('This URL %url is not valid for role %role.', [
             '%url' => $form_state->getValue($user),
             '%role' => $name,
           ]));
         }
         $is_valid = \Drupal::service('path.validator')->isValid($path);
         if ($is_valid == NULL) {
-          $form_state->setErrorByName($user, t('Path does not exists.'));
+          $form_state->setErrorByName($user, $this->t('Path does not exists.'));
         }
       }
     }

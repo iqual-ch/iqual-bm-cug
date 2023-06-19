@@ -20,10 +20,9 @@ use Drupal\Core\Field\FormatterBase;
 class RoleAccessFormatter extends FormatterBase {
 
   /**
-   *
+   * {@inheritdoc}
    */
   public function viewElements(FieldItemListInterface $items, $langcode) {
-    // @todo Implement viewElements() method.
     return [];
   }
 

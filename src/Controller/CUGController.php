@@ -20,11 +20,6 @@ class CUGController extends ControllerBase {
    *   The form render array to display on the roles page.
    */
   public function rolePage() {
-    $entity = $this->entityManager()->getStorage('user_role')->create([
-      'type' => 'user_role',
-    ]);
-
-    // $form = $this->entityFormBuilder()->getForm($node);
     $form_state = new FormState();
     $user_role = \Drupal::entityTypeManager()->getListBuilder('user_role');
     $form = CUGRoleListBuilder::createInstance(\Drupal::getContainer(), $user_role->getStorage()->getEntityType())->buildForm([], $form_state);
@@ -32,6 +27,8 @@ class CUGController extends ControllerBase {
   }
 
   /**
+   * Add role.
+   *
    * Handler function to add a new CUG role with a predefined value for the
    * third party setting that indicates that it is a CUG role.
    *
