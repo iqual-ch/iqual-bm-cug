@@ -2,7 +2,8 @@
 
 namespace Drupal\iq_pb_cug\Plugin\Field\FieldFormatter;
 
-use \Drupal\Core\Field\FormatterBase;
+use Drupal\Core\Field\FieldItemListInterface;
+use Drupal\Core\Field\FormatterBase;
 
 /**
  * Plugin implementation of the role access formatter.
@@ -16,11 +17,13 @@ use \Drupal\Core\Field\FormatterBase;
  *     }
  * )
  */
-class RoleAccessFormatter extends FormatterBase
-{
-    public function viewElements(\Drupal\Core\Field\FieldItemListInterface $items, $langcode)
-    {
-        // TODO: Implement viewElements() method.
-        return [];
-    }
+class RoleAccessFormatter extends FormatterBase {
+
+  /**
+   * {@inheritdoc}
+   */
+  public function viewElements(FieldItemListInterface $items, $langcode) {
+    return [];
+  }
+
 }

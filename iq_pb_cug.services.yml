@@ -1,0 +1,5 @@
+services:
+  http_middleware.iq_pb_cug:
+    class: Drupal\iq_pb_cug\RedirectMiddleware
+    tags:
+      - { name: http_middleware}
