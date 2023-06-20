@@ -3,14 +3,14 @@
 namespace Drupal\iq_pb_cug;
 
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\user\RoleListBuilder;
+use Drupal\user\RoleListBuilder as ParentRoleListBuilder;
 
 /**
  * Extend the RoleListBuilder class to filter only cug roles.
  *
  * @package Drupal\iq_pb_cug
  */
-class CUGRoleListBuilder extends RoleListBuilder {
+class RoleListBuilder extends ParentRoleListBuilder {
 
   /**
    * {@inheritDoc}

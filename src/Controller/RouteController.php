@@ -4,7 +4,7 @@ namespace Drupal\iq_pb_cug\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Form\FormState;
-use Drupal\iq_pb_cug\CUGRoleListBuilder;
+use Drupal\iq_pb_cug\RoleListBuilder;
 use Drupal\user\Entity\Role;
 use Drupal\user\Entity\User;
 
@@ -22,7 +22,7 @@ class RouteController extends ControllerBase {
   public function rolePage() {
     $form_state = new FormState();
     $user_role = \Drupal::entityTypeManager()->getListBuilder('user_role');
-    $form = CUGRoleListBuilder::createInstance(\Drupal::getContainer(), $user_role->getStorage()->getEntityType())->buildForm([], $form_state);
+    $form = RoleListBuilder::createInstance(\Drupal::getContainer(), $user_role->getStorage()->getEntityType())->buildForm([], $form_state);
     return $form;
   }
 
