@@ -11,7 +11,7 @@ use Drupal\user\Entity\User;
 /**
  * Controller routines for user routes.
  */
-class CUGController extends ControllerBase {
+class RouteController extends ControllerBase {
 
   /**
    * Function to display page with CUG roles.

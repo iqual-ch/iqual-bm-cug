@@ -11,7 +11,7 @@ use Drupal\user\Entity\Role;
  *
  * @package Drupal\iq_pb_cug\Form
  */
-class CugRedirectionForm extends ConfigFormBase {
+class RedirectionForm extends ConfigFormBase {
 
   /**
    * {@inheritdoc}
