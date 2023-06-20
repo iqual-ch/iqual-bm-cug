@@ -2,4 +2,4 @@ name: iQual CUG
 description: Allows to add access rights to public pages.
 package: Custom
 type: module
-core_version_requirement: ^8.8 || ^9
+core: 8.x
