@@ -1,108 +1,107 @@
 <?php
 
+/**
+ * @file
+ * Iq_pb_cug module file.
+ */
+
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
-use Drupal\user\Entity\User;
 use Drupal\user\UserInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use \Drupal\Core\Access\AccessResult;
-use \Drupal\user\Entity\Role;
-use \Drupal\views\ViewExecutable;
+use Drupal\Core\Access\AccessResult;
+use Drupal\user\Entity\Role;
+use Drupal\views\ViewExecutable;
 
 /**
  * Implements hook_node_access().
  *
- *
- * Check if there is a role access defined for the node, if so redirect accordingly.
+ * Redirect if access role for node is defined.
  */
-function iq_pb_cug_node_access($node, $op, $account)
-{
-    if (!empty($node) && $op == 'view' && $node->hasField('field_role_access') && !$node->field_role_access->isEmpty()) {
-      $roleField = $node->field_role_access;
-      if (!$roleField->isEmpty()) {
-        $iterator = $roleField->getValue();
-        $roles = [];
+function iq_pb_cug_node_access($node, $op, $account) {
+  if (!empty($node) && $op == 'view' && $node->hasField('field_role_access') && !$node->field_role_access->isEmpty()) {
+    $roleField = $node->field_role_access;
+    if (!$roleField->isEmpty()) {
+      $iterator = $roleField->getValue();
+      $roles = [];
 
-        $isExtranet = FALSE;
-        if (count($iterator) > 0) {
-          foreach ($iterator as $role => $value) {
-            $roles[] = $value['target_id'];
-            if (Role::load($value['target_id'])
-              ->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
-              $isExtranet = TRUE;
-            }
-          }
-        }
-        $intersection = array_intersect($roles, $account->getRoles());
-        if (count($intersection) > 0) {
-          return AccessResult::allowed()->cachePerPermissions();
-        }
-        else {
-          if ($account->isAnonymous() && $isExtranet) {
-            return AccessResult::forbidden()->setCacheMaxAge(0);
-          }
-          else {
-            return AccessResult::forbidden()->cachePerPermissions();
+      $isExtranet = FALSE;
+      if ((is_countable($iterator) ? count($iterator) : 0) > 0) {
+        foreach ($iterator as $value) {
+          $roles[] = $value['target_id'];
+          if (Role::load($value['target_id'])
+            ->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
+            $isExtranet = TRUE;
           }
         }
       }
+      $intersection = array_intersect($roles, $account->getRoles());
+      if (count($intersection) > 0) {
+        return AccessResult::allowed()->cachePerPermissions();
+      }
+      else {
+        if ($account->isAnonymous() && $isExtranet) {
+          return AccessResult::forbidden()->setCacheMaxAge(0);
+        }
+        else {
+          return AccessResult::forbidden()->cachePerPermissions();
+        }
+      }
     }
-    return AccessResult::neutral();
+  }
+  return AccessResult::neutral();
 }
 
 /**
  * Implements hook_user_login().
  *
  * Check if the user is a part of the CUG and redirect accordingly.
- *
- * @param UserInterface $user
- * @return void
  */
-function iq_pb_cug_user_login(UserInterface $user)
-{
-    $middleware = \Drupal::service('http_middleware.iq_pb_cug');
-    $isExtranet = false;
-    $weight = -1;
-    $username = null;
-    foreach ($user->getRoles() as $role) {
-        $roleObj = \Drupal\user\Entity\Role::load($role);
-        if ($roleObj->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
-            if ($weight < 0 || (int) $roleObj->getThirdPartySetting('iq_pb_cug', 'closed_user_group_weight') > $weight) {
-                $isExtranet = true;
-                $username = $role;
-                $weight = (int) $roleObj->getThirdPartySetting('iq_pb_cug', 'closed_user_group_weight');
-            }
-        }
+function iq_pb_cug_user_login(UserInterface $user) {
+  $middleware = \Drupal::service('http_middleware.iq_pb_cug');
+  $isExtranet = FALSE;
+  $weight = -1;
+  $username = NULL;
+  foreach ($user->getRoles() as $role) {
+    $roleObj = Role::load($role);
+    if ($roleObj->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
+      if ($weight < 0 || (int) $roleObj->getThirdPartySetting('iq_pb_cug', 'closed_user_group_weight') > $weight) {
+        $isExtranet = TRUE;
+        $username = $role;
+        $weight = (int) $roleObj->getThirdPartySetting('iq_pb_cug', 'closed_user_group_weight');
+      }
     }
-    if ($isExtranet) {
-        $current_route = \Drupal::routeMatch()->getRouteName();
-        if (!in_array($current_route, ['user.reset', 'user.reset.login'])) {
-            $destination = \Drupal::request()->query->get('destination');
-            if (!empty($destination)) {
-                $response = new RedirectResponse(Url::fromUserInput($destination)->toString());
-                $middleware->setRedirectResponse($response);
-                return;
-            }
+  }
+  if ($isExtranet) {
+    $current_route = \Drupal::routeMatch()->getRouteName();
+    if (!in_array($current_route, ['user.reset', 'user.reset.login'])) {
+      $destination = \Drupal::request()->query->get('destination');
+      if (!empty($destination)) {
+        $response = new RedirectResponse(Url::fromUserInput($destination)->toString());
+        $middleware->setRedirectResponse($response);
+        return;
+      }
 
-            $cug_redirection = \Drupal::config('iq_pb_cug.settings')
-                ->get('cug_redirection');
-            $default_redirection = \Drupal::config('iq_pb_cug.settings')
-                ->get('default_redirection');
-            $login_destination = \Drupal::config('iq_pb_cug.settings')
-                ->get('login_destination');
+      $cug_redirection = \Drupal::config('iq_pb_cug.settings')
+        ->get('cug_redirection');
+      $default_redirection = \Drupal::config('iq_pb_cug.settings')
+        ->get('default_redirection');
+      $login_destination = \Drupal::config('iq_pb_cug.settings')
+        ->get('login_destination');
 
-            if (!empty($login_destination)) {
-                if (!empty($cug_redirection[$username])) {
-                    $response = new RedirectResponse(Url::fromUserInput($cug_redirection[$username])
-                            ->toString());
-                    $middleware->setRedirectResponse($response);
-                } else if (!empty($default_redirection)) {
-                    $response = new RedirectResponse(Url::fromUserInput($default_redirection)->toString());
-                    $middleware->setRedirectResponse($response);
-                }
-            }
+      if (!empty($login_destination)) {
+        if (!empty($cug_redirection[$username])) {
+          $response = new RedirectResponse(Url::fromUserInput($cug_redirection[$username])
+            ->toString());
+          $middleware->setRedirectResponse($response);
         }
+        elseif (!empty($default_redirection)) {
+          $response = new RedirectResponse(Url::fromUserInput($default_redirection)->toString());
+          $middleware->setRedirectResponse($response);
+        }
+      }
     }
+  }
 }
 
 /**
@@ -110,89 +109,91 @@ function iq_pb_cug_user_login(UserInterface $user)
  *
  * Add a third party setting to indicate if a role is a part of the CUG.
  */
-function iq_pb_cug_form_user_role_form_alter(&$form, FormStateInterface $form_state, $form_id)
-{
-    $entity = $form_state->getFormObject()->getEntity();
+function iq_pb_cug_form_user_role_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $entity = $form_state->getFormObject()->getEntity();
 
-    $form['cug_settings'] = [
-        '#type' => 'details',
-        '#title' => t('CUG settings'),
-        '#open' => false,
-        '#weight' => 5,
-    ];
-    $form['cug_settings']['closed_user_group'] = [
-        '#type' => 'checkbox',
-        '#title' => t('Closed user group role'),
-        '#description' => t('Check this box if the role is part of the closed user group.'),
-        '#default_value' => $entity->getThirdPartySetting('iq_pb_cug', 'closed_user_group'),
-        '#disabled' => $entity->getThirdPartySetting('iq_pb_cug', 'closed_user_group') && !\Drupal::currentUser()->hasPermission('administer users') ? 'disabled' : false,
-    ];
+  $form['cug_settings'] = [
+    '#type' => 'details',
+    '#title' => t('CUG settings'),
+    '#open' => FALSE,
+    '#weight' => 5,
+  ];
+  $form['cug_settings']['closed_user_group'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Closed user group role'),
+    '#description' => t('Check this box if the role is part of the closed user group.'),
+    '#default_value' => $entity->getThirdPartySetting('iq_pb_cug', 'closed_user_group'),
+    '#disabled' => $entity->getThirdPartySetting('iq_pb_cug', 'closed_user_group')
+    && !\Drupal::currentUser()->hasPermission('administer users') ? 'disabled' : FALSE,
+  ];
 
-    $form['cug_settings']['closed_user_group_weight'] = [
-        '#type' => 'number',
-        '#title' => t('Weight'),
-        '#min' => 0,
-        '#max' => 1000,
-        '#default_value' => $entity->getThirdPartySetting('iq_pb_cug', 'closed_user_group_weight'),
-    ];
-    $form['actions']['submit']['#submit'][] = 'iq_pb_cug_form_user_role_form_submit';
+  $form['cug_settings']['closed_user_group_weight'] = [
+    '#type' => 'number',
+    '#title' => t('Weight'),
+    '#min' => 0,
+    '#max' => 1000,
+    '#default_value' => $entity->getThirdPartySetting('iq_pb_cug', 'closed_user_group_weight'),
+  ];
+  $form['actions']['submit']['#submit'][] = 'iq_pb_cug_form_user_role_form_submit';
 }
 
 /**
  * Implements hook_form_FORM_ID_alter().
  */
-function iq_pb_cug_form_user_form_alter(&$form, FormStateInterface $form_state, $form_id)
-{
-    /** @var User $user */
-    if (isset($_GET['destination']) && strpos($_GET['destination'], '/cug/') > 0) {
-        foreach ($form['account']['roles']['#options'] as $role_key => $role_label) {
-            if (!Role::load($role_key)->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
-                unset($form['account']['roles']['#options'][$role_key]);
-                unset($form['account']['roles'][$role_key]);
-            }
-        }
+function iq_pb_cug_form_user_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $destination = \Drupal::request()->get('destination');
+  if (!empty($destination) && strpos($destination, '/cug/') > 0) {
+    foreach ($form['account']['roles']['#options'] as $role_key => $role_label) {
+      if (!Role::load($role_key)->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
+        unset($form['account']['roles']['#options'][$role_key]);
+        unset($form['account']['roles'][$role_key]);
+      }
     }
-    $form['actions']['submit']['#submit'][] = 'iq_pb_cug_form_user_form_submit';
+  }
+  $form['actions']['submit']['#submit'][] = 'iq_pb_cug_form_user_form_submit';
 }
 
 /**
  * Form submit handler function for the user role form.
  */
-function iq_pb_cug_form_user_role_form_submit(&$form, FormStateInterface $form_state)
-{
-    $entity = $form_state->getFormObject()->getEntity();
-    $entity->setThirdPartySetting('iq_pb_cug', 'closed_user_group', (bool) $form['cug_settings']['closed_user_group']['#value']);
-    $entity->setThirdPartySetting('iq_pb_cug', 'closed_user_group_weight', $form['cug_settings']['closed_user_group_weight']['#value']);
-    $entity->save();
-    // If the role is a part of the CUG, redirect to the CUG roles.
-    $user = \Drupal::currentUser();
-    if ((bool) $form['cug_settings']['closed_user_group']['#value'] && $user->hasPermission('administer iq_pb_cug users') && $user->hasPermission('administer users')) {
-        $form_state->setRedirect('iq_pb_cug.cug_roles');
-    }
+function iq_pb_cug_form_user_role_form_submit(&$form, FormStateInterface $form_state) {
+  $entity = $form_state->getFormObject()->getEntity();
+  $entity->setThirdPartySetting('iq_pb_cug', 'closed_user_group', (bool) $form['cug_settings']['closed_user_group']['#value']);
+  $entity->setThirdPartySetting('iq_pb_cug', 'closed_user_group_weight', $form['cug_settings']['closed_user_group_weight']['#value']);
+  $entity->save();
+  // If the role is a part of the CUG, redirect to the CUG roles.
+  $user = \Drupal::currentUser();
+  if (
+    (bool) $form['cug_settings']['closed_user_group']['#value']
+    && $user->hasPermission('administer iq_pb_cug users')
+    && $user->hasPermission('administer users')
+  ) {
+    $form_state->setRedirect('iq_pb_cug.cug_roles');
+  }
 }
 
 /**
  * Form submit handler function for the user form.
  */
-function iq_pb_cug_form_user_form_submit(&$form, FormStateInterface $form_state)
-{
-    /** @var \Drupal\user\Entity\User $entity */
-    $entity = $form_state->getFormObject()->getEntity();
-    $is_cug_user = false;
-    foreach ($entity->getRoles() as $role_key => $role_value) {
-        if (Role::load($role_value)->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
-            $is_cug_user = true;
-            break;
-        }
+function iq_pb_cug_form_user_form_submit(&$form, FormStateInterface $form_state) {
+  /** @var \Drupal\user\Entity\User $entity */
+  $entity = $form_state->getFormObject()->getEntity();
+  $is_cug_user = FALSE;
+  foreach ($entity->getRoles() as $role_id) {
+    if (Role::load($role_id)->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
+      $is_cug_user = TRUE;
+      break;
     }
-    $user = \Drupal::currentUser();
-    if ($is_cug_user && $user->hasPermission('administer iq_pb_cug users') && $user->hasPermission('administer users')) {
-        $form_state->setRedirect('iq_pb_cug.settings');
-    } else {
-        if ($is_cug_user) {
-            $form_state->setRedirect('user.page');
-        }
+  }
+  $user = \Drupal::currentUser();
+  if ($is_cug_user && $user->hasPermission('administer iq_pb_cug users') && $user->hasPermission('administer users')) {
+    $form_state->setRedirect('iq_pb_cug.settings');
+  }
+  else {
+    if ($is_cug_user) {
+      $form_state->setRedirect('user.page');
     }
+  }
 
 }
 
@@ -201,28 +202,27 @@ function iq_pb_cug_form_user_form_submit(&$form, FormStateInterface $form_state)
  *
  * Filter the users to show only those who are a part of the CUG.
  */
-function iq_pb_cug_views_pre_view(ViewExecutable $view, $display_id, array &$args)
-{
-    if ($view->id() == 'iq_pb_cug_users') {
+function iq_pb_cug_views_pre_view(ViewExecutable $view, $display_id, array &$args) {
+  if ($view->id() == 'iq_pb_cug_users') {
 
-        // Filter only CUG Users
-        $view_filters = $view->getDisplay()->getOption('filters');
-        // @todo CUG Functionality
-        // Get all CUG roles.
-        $roles = \Drupal::entityQuery('user_role')->execute();
-        $cug_roles = 0;
-        foreach ($roles as $role_key => $role) {
-            $user_role = Role::load($role_key);
-            if ($user_role->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
-                $view_filters['roles_target_id']['value'][$role_key] = $role_key;
-                $cug_roles++;
-            }
-        }
-        if ($cug_roles <= 0) {
-            $view_filters['roles_target_id']['value']['no-cug-roles'] = 'no-cug-roles';
-        }
-        $view_filters['roles_target_id']['exposed'] = false;
-        // Override filters to show only users with CUG roles.
-        $view->getDisplay()->overrideOption('filters', $view_filters);
+    // Filter only CUG Users.
+    $view_filters = $view->getDisplay()->getOption('filters');
+    // @todo CUG Functionality
+    // Get all CUG roles.
+    $roles = \Drupal::entityQuery('user_role')->execute();
+    $cug_roles = 0;
+    foreach ($roles as $role_key => $role) {
+      $user_role = Role::load($role_key);
+      if ($user_role->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
+        $view_filters['roles_target_id']['value'][$role_key] = $role_key;
+        $cug_roles++;
+      }
     }
+    if ($cug_roles <= 0) {
+      $view_filters['roles_target_id']['value']['no-cug-roles'] = 'no-cug-roles';
+    }
+    $view_filters['roles_target_id']['exposed'] = FALSE;
+    // Override filters to show only users with CUG roles.
+    $view->getDisplay()->overrideOption('filters', $view_filters);
+  }
 }
