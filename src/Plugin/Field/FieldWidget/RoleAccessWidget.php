@@ -3,10 +3,10 @@
 namespace Drupal\iq_pb_cug\Plugin\Field\FieldWidget;
 
 use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\Plugin\Field\FieldWidget\OptionsSelectWidget;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\user\Entity\Role;
-use Drupal\Core\Field\FieldItemListInterface;
 
 /**
  * Plugin implementation of the Role access widget.
