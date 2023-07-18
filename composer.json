@@ -7,5 +7,9 @@
       "type": "composer",
       "url": "https://github.com/iqual-ch/iqual-bm-cug"
     }
-  ]
+  ],
+  "require": {
+    "php": "^8.1",
+    "drupal/core": "^9.5 || ^10"
+  }
 }
