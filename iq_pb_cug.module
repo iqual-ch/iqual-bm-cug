@@ -5,13 +5,13 @@
  * Iq_pb_cug module file.
  */
 
+use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
-use Drupal\user\UserInterface;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Drupal\Core\Access\AccessResult;
 use Drupal\user\Entity\Role;
+use Drupal\user\UserInterface;
 use Drupal\views\ViewExecutable;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * Implements hook_node_access().
@@ -142,7 +142,7 @@ function iq_pb_cug_form_user_role_form_alter(&$form, FormStateInterface $form_st
  */
 function iq_pb_cug_form_user_form_alter(&$form, FormStateInterface $form_state, $form_id) {
   $destination = \Drupal::request()->get('destination');
-  if (!empty($destination) && strpos($destination, '/cug/') > 0) {
+  if (!empty($destination) && strpos((string) $destination, '/cug/') > 0) {
     foreach ($form['account']['roles']['#options'] as $role_key => $role_label) {
       if (!Role::load($role_key)->getThirdPartySetting('iq_pb_cug', 'closed_user_group')) {
         unset($form['account']['roles']['#options'][$role_key]);

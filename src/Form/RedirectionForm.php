@@ -91,7 +91,7 @@ class RedirectionForm extends ConfigFormBase {
       }
       $path = $form_state->getValue($user);
       if (!empty($path)) {
-        if (!(preg_match('/^[#?\/]+/', $path) || $path == '<front>')) {
+        if (!(preg_match('/^[#?\/]+/', (string) $path) || $path == '<front>')) {
           $form_state->setErrorByName($user, $this->t('This URL %url is not valid for role %role.', [
             '%url' => $form_state->getValue($user),
             '%role' => $name,
