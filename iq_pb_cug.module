@@ -110,7 +110,9 @@ function iq_pb_cug_user_login(UserInterface $user) {
  * Add a third party setting to indicate if a role is a part of the CUG.
  */
 function iq_pb_cug_form_user_role_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  $entity = $form_state->getFormObject()->getEntity();
+  /** @var \\Drupal\Core\Form\FormInterface $form_object */
+  $form_object = $form_state->getFormObject();
+  $entity = $form_object->getEntity();
 
   $form['cug_settings'] = [
     '#type' => 'details',
